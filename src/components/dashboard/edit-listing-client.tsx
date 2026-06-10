@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import {
   AlertCircle, ArrowLeft, ArrowUp, Check, ImagePlus, Loader2, Star, Trash2,
 } from 'lucide-react'
@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { editProperty } from '@/lib/actions/properties'
 import { uploadPropertyImage, validateImage } from '@/lib/storage/upload'
+import { createClient, supabaseEnabled } from '@/lib/supabase/client'
 import { useToast } from '@/components/providers/toast-provider'
 import { PinPickerLoader } from '@/components/map/pin-picker-loader'
 import { LocationAutocomplete } from '@/components/search/location-autocomplete'
@@ -59,8 +60,21 @@ export function EditListingClient({ property }: { property: Property }) {
     status: property.status as 'active' | 'sold' | 'rented' | 'draft',
     latitude: property.latitude,
     longitude: property.longitude,
+    contact_phone: '',
+    contact_whatsapp: '',
   })
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }))
+
+  // Pre-fill contact details from the seller profile
+  useEffect(() => {
+    if (!supabaseEnabled) return
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return
+      const { data: prof } = await supabase.from('profiles').select('phone, whatsapp').eq('id', data.user.id).maybeSingle()
+      if (prof) setF((s) => ({ ...s, contact_phone: s.contact_phone || prof.phone || '', contact_whatsapp: s.contact_whatsapp || prof.whatsapp || '' }))
+    })
+  }, [])
 
   const [images, setImages] = useState<EditImage[]>(
     (property.property_images ?? [])
@@ -121,6 +135,8 @@ export function EditListingClient({ property }: { property: Property }) {
         parking: f.parking ? Number(f.parking) : null,
         year_built: f.year_built ? Number(f.year_built) : null,
         status: f.status,
+        contact_phone: f.contact_phone,
+        contact_whatsapp: f.contact_whatsapp,
         images: doneImages.map((im) => ({ id: im.id, url: im.url, storage_path: im.storage_path ?? null })),
       })
       if (res.ok) {
@@ -228,6 +244,12 @@ export function EditListingClient({ property }: { property: Property }) {
           </>}
           <Group label="Parking"><Input type="number" value={f.parking} onChange={(e) => set('parking', e.target.value)} /></Group>
           <Group label="Land (perch)"><Input type="number" value={f.land_size} onChange={(e) => set('land_size', e.target.value)} /></Group>
+        </div>
+
+        {/* Contact */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Group label="Contact phone"><Input type="tel" value={f.contact_phone} onChange={(e) => set('contact_phone', e.target.value)} placeholder="07X XXX XXXX" /></Group>
+          <Group label="WhatsApp (optional)"><Input type="tel" value={f.contact_whatsapp} onChange={(e) => set('contact_whatsapp', e.target.value)} placeholder="Same as phone if empty" /></Group>
         </div>
 
         {/* Photos */}

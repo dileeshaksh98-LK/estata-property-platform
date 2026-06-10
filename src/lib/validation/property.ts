@@ -63,6 +63,8 @@ export const propertyEditInput = z.object({
   parking: z.coerce.number().int().nonnegative().max(50).optional().nullable(),
   year_built: z.coerce.number().int().min(1800).max(2100).optional().nullable(),
   status: statusEnum,
+  contact_phone: z.string().max(40).optional().or(z.literal('')),
+  contact_whatsapp: z.string().max(40).optional().or(z.literal('')),
   /** Final image set, in display order. Existing images carry their id. */
   images: z.array(z.object({
     id: z.string().optional(),

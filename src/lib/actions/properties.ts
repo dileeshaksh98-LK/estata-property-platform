@@ -172,11 +172,18 @@ export async function editProperty(raw: PropertyEditInput): Promise<ActionResult
   if (!parsed.success) {
     return { ok: false, error: 'Please fix the highlighted fields.', fieldErrors: parsed.error.flatten().fieldErrors }
   }
-  const { id, images, ...fields } = parsed.data
+  const { id, images, contact_phone, contact_whatsapp, ...fields } = parsed.data
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Not authenticated.' }
+
+  if (contact_phone || contact_whatsapp) {
+    await supabase.from('profiles').update({
+      ...(contact_phone ? { phone: contact_phone } : {}),
+      ...(contact_whatsapp ? { whatsapp: contact_whatsapp } : {}),
+    }).eq('id', user.id)
+  }
 
   // Load current listing (ownership + current images for the diff).
   const { data: current } = await supabase

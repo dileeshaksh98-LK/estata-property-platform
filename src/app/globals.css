@@ -176,3 +176,6 @@
 .leaflet-popup-content-wrapper { border-radius: 16px; }
 .leaflet-popup-content { margin: 10px 12px; }
 .leaflet-popup-content a { color: inherit; text-decoration: none; }
+
+/* Contain Leaflet's internal z-indexes (up to 1000) so overlays/modals win */
+.leaflet-container { isolation: isolate; z-index: 0; }
