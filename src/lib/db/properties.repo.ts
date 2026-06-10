@@ -6,7 +6,7 @@ export const PAGE_SIZE = 9
 
 const LIST_SELECT = '*, property_images(id, url, is_primary, sort_order)'
 const DETAIL_SELECT =
-  '*, property_images(id, url, storage_path, is_primary, sort_order), profiles(id, full_name, avatar_url, phone, whatsapp, verification_level)'
+  '*, property_images(id, url, storage_path, is_primary, sort_order), profiles!properties_owner_id_fkey(id, full_name, avatar_url, phone, whatsapp, verification_level)'
 
 export interface ListResult {
   listings: Property[]
