@@ -8,6 +8,7 @@ export type LandSizeUnit = 'perch' | 'acre' | 'sqft'
 export interface PropertyImage {
   id: string
   url: string
+  storage_path?: string | null
   is_primary: boolean
   sort_order: number
 }
@@ -62,6 +63,18 @@ export interface ListingFilters {
   maxPrice?: number
   beds?: number
   q?: string
-  sort?: 'newest' | 'price_asc' | 'price_desc'
+  sort?: 'newest' | 'price_asc' | 'price_desc' | 'views'
   page?: number
+  bbox?: string
+  view?: 'list' | 'map'
+}
+
+export interface MapMarkerData {
+  id: string
+  slug: string
+  title: string
+  price: number
+  lat: number
+  lng: number
+  cover: string | null
 }

@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { FilterSidebar, FilterDrawer, SortSelect } from '@/components/filters/filter-panel'
 import { PropertyGrid } from '@/components/property/property-grid'
 import { Pagination } from '@/components/common/pagination'
-import { listProperties } from '@/lib/db/properties.repo'
+import { listMapMarkers, listProperties } from '@/lib/db/properties.repo'
+import { BrowseMapLoader } from '@/components/map/browse-map-loader'
+import { ViewToggle } from '@/components/map/view-toggle'
 import type { ListingFilters } from '@/types/property'
 
 export const metadata: Metadata = {
@@ -26,6 +28,8 @@ function parse(sp: SP): ListingFilters {
     q: one('q'),
     sort: (one('sort') as ListingFilters['sort']) ?? 'newest',
     page: num('page') ?? 1,
+    bbox: one('bbox'),
+    view: one('view') === 'map' ? 'map' : 'list',
   }
 }
 
@@ -36,7 +40,11 @@ export default async function PropertiesPage({
 }) {
   const sp = await searchParams
   const filters = parse(sp)
-  const { listings, total, page, pageSize } = await listProperties(filters)
+  const mapMode = filters.view === 'map'
+  const [{ listings, total, page, pageSize }, markers] = await Promise.all([
+    listProperties(filters),
+    mapMode ? listMapMarkers(filters) : Promise.resolve([]),
+  ])
 
   const makeHref = (p: number) => {
     const next = new URLSearchParams()
@@ -57,20 +65,37 @@ export default async function PropertiesPage({
       </header>
 
       <div className="flex gap-8">
-        <FilterSidebar />
+        {!mapMode && <FilterSidebar />}
 
         <div className="min-w-0 flex-1">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <FilterDrawer />
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <FilterDrawer />
+              <ViewToggle />
+            </div>
             <div className="flex items-center gap-2">
               <span className="hidden text-sm text-muted-foreground sm:inline">Sort by</span>
               <SortSelect />
             </div>
           </div>
 
-          <PropertyGrid properties={listings} />
-
-          <Pagination page={page} total={total} pageSize={pageSize} makeHref={makeHref} />
+          {mapMode ? (
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,440px)_1fr]">
+              {/* list column hidden on mobile (map fills the screen there) */}
+              <div className="hidden max-h-[calc(100dvh-14rem)] space-y-4 overflow-y-auto pr-1 lg:block">
+                <PropertyGrid properties={listings} columns={1} />
+                <Pagination page={page} total={total} pageSize={pageSize} makeHref={makeHref} />
+              </div>
+              <div className="sticky top-20 h-[calc(100dvh-9rem)] min-h-[420px] lg:h-[calc(100dvh-12rem)]">
+                <BrowseMapLoader markers={markers} />
+              </div>
+            </div>
+          ) : (
+            <>
+              <PropertyGrid properties={listings} />
+              <Pagination page={page} total={total} pageSize={pageSize} makeHref={makeHref} />
+            </>
+          )}
         </div>
       </div>
     </div>

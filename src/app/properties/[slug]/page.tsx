@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Bath, BedDouble, Calendar, Car, ChevronRight, GraduationCap,
-  Hospital, MapPin, Maximize, ShoppingBag, Train, Trees,
+  Bath, BedDouble, Calendar, Car, ChevronRight, MapPin, Maximize, Trees,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ImageGallery } from '@/components/property/image-gallery'
@@ -13,6 +12,8 @@ import { Reveal } from '@/components/common/reveal'
 import { getPropertyBySlug, getSimilar } from '@/lib/db/properties.repo'
 import { ViewTracker } from '@/components/property/view-tracker'
 import { formatLandSize } from '@/lib/format'
+import { DetailMapLoader } from '@/components/map/detail-map-loader'
+import { NearbyPlaces } from '@/components/property/nearby-places'
 import { SITE } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
@@ -36,13 +37,6 @@ export async function generateMetadata({
     },
   }
 }
-
-const NEARBY = [
-  { icon: GraduationCap, label: 'Schools', detail: 'Royal College · 1.2 km' },
-  { icon: Hospital, label: 'Hospital', detail: 'Nawaloka · 2.4 km' },
-  { icon: Train, label: 'Transport', detail: 'Railway station · 800 m' },
-  { icon: ShoppingBag, label: 'Shopping', detail: 'Arcade Mall · 1.5 km' },
-]
 
 export default async function PropertyDetailPage({
   params,
@@ -134,36 +128,31 @@ export default async function PropertyDetailPage({
             <p className="mt-3 leading-relaxed text-muted-foreground text-pretty">{property.description}</p>
           </section>
 
-          {/* map placeholder (OpenStreetMap/Leaflet wires in here at Phase 2) */}
           <section className="mt-8">
             <h2 className="font-display text-xl font-semibold">Location</h2>
-            <div className="mt-3 relative h-64 overflow-hidden rounded-3xl border border-border bg-secondary">
-              <div className="grain mesh absolute inset-0" />
-              <div className="absolute inset-0 grid place-items-center text-center">
-                <div>
-                  <span className="mx-auto grid size-12 place-items-center rounded-full bg-card shadow-soft">
-                    <MapPin className="size-6 text-accent" />
-                  </span>
-                  <p className="mt-3 text-sm font-medium">{property.city}, {property.district}</p>
-                  <p className="text-xs text-muted-foreground">Interactive map loads in Phase 2 (Leaflet + OpenStreetMap)</p>
+            {property.latitude != null && property.longitude != null ? (
+              <div className="mt-3">
+                <DetailMapLoader lat={property.latitude} lng={property.longitude} title={property.title} />
+              </div>
+            ) : (
+              <div className="relative mt-3 h-44 overflow-hidden rounded-3xl border border-border bg-secondary">
+                <div className="grain mesh absolute inset-0" />
+                <div className="absolute inset-0 grid place-items-center text-center">
+                  <div>
+                    <span className="mx-auto grid size-12 place-items-center rounded-full bg-card shadow-soft">
+                      <MapPin className="size-6 text-accent" />
+                    </span>
+                    <p className="mt-3 text-sm font-medium">{property.city}{property.district ? `, ${property.district}` : ''}</p>
+                    <p className="text-xs text-muted-foreground">Approximate area — the seller hasn’t pinned an exact location</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </section>
 
-          {/* nearby */}
-          <section className="mt-8">
-            <h2 className="font-display text-xl font-semibold">What’s nearby</h2>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {NEARBY.map((n) => (
-                <div key={n.label} className="rounded-2xl border border-border bg-card p-4">
-                  <n.icon className="size-5 text-primary" />
-                  <p className="mt-2 text-sm font-medium">{n.label}</p>
-                  <p className="text-xs text-muted-foreground">{n.detail}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          {property.latitude != null && property.longitude != null && (
+            <NearbyPlaces lat={property.latitude} lng={property.longitude} />
+          )}
         </div>
 
         {/* sidebar actions */}

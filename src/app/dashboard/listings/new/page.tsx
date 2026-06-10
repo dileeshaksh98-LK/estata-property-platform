@@ -2,10 +2,10 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useCallback, useRef, useState, useTransition } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  AlertCircle, ArrowLeft, ArrowRight, Check, ImagePlus, Loader2, MapPin, UploadCloud, X,
+  AlertCircle, ArrowLeft, ArrowRight, Check, ImagePlus, Loader2, UploadCloud, X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,9 @@ import { Badge } from '@/components/ui/badge'
 import { PropertyCard } from '@/components/property/property-card'
 import { createProperty } from '@/lib/actions/properties'
 import { uploadPropertyImage, validateImage } from '@/lib/storage/upload'
+import { PinPickerLoader } from '@/components/map/pin-picker-loader'
+import { LocationAutocomplete } from '@/components/search/location-autocomplete'
+import { createClient, supabaseEnabled } from '@/lib/supabase/client'
 import { PROPERTY_TYPES, DISTRICTS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import type { ListingType, Property, PropertyType } from '@/types/property'
@@ -45,18 +48,34 @@ interface FormState {
   land_size: string
   amenities: string[]
   images: ImageItem[]
+  latitude: number | null
+  longitude: number | null
+  contact_phone: string
+  contact_whatsapp: string
 }
 
 const initial: FormState = {
   property_type: 'house', listing_type: 'sale', title: '', description: '',
   district: '', city: '', address: '', price: '', bedrooms: '', bathrooms: '',
   parking: '', land_size: '', amenities: [], images: [],
+  latitude: null, longitude: null, contact_phone: '', contact_whatsapp: '',
 }
 
 export default function NewListingPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormState>(initial)
+
+  // Pre-fill contact details from the seller profile
+  useEffect(() => {
+    if (!supabaseEnabled) return
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return
+      const { data: prof } = await supabase.from('profiles').select('phone, whatsapp').eq('id', data.user.id).maybeSingle()
+      if (prof) setForm((f) => ({ ...f, contact_phone: f.contact_phone || prof.phone || '', contact_whatsapp: f.contact_whatsapp || prof.whatsapp || '' }))
+    })
+  }, [])
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -115,6 +134,10 @@ export default function NewListingPage() {
         bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
         parking: form.parking ? Number(form.parking) : null,
         land_size: form.land_size ? Number(form.land_size) : null,
+        latitude: form.latitude,
+        longitude: form.longitude,
+        contact_phone: form.contact_phone,
+        contact_whatsapp: form.contact_whatsapp,
         status: 'active',
         images: doneImages.map((im, i) => ({ url: im.url!, storage_path: im.storage_path, is_primary: i === 0, sort_order: i })),
       })
@@ -213,16 +236,29 @@ function Location({ form, set }: StepProps) {
         <Group label="City / Area"><Input value={form.city} onChange={(e) => set('city', e.target.value)} placeholder="e.g. Nugegoda" /></Group>
       </div>
       <Group label="Address (optional)"><Input value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="Street address" /></Group>
-      <Group label="Pin location">
-        <div className="relative h-52 overflow-hidden rounded-3xl border border-border">
-          <div className="grain mesh absolute inset-0" />
-          <div className="absolute inset-0 grid place-items-center">
-            <span className="flex flex-col items-center gap-2 rounded-2xl bg-card/90 px-5 py-3 text-sm font-medium shadow-soft backdrop-blur">
-              <MapPin className="size-5 text-accent" /> Map pin picker
-              <span className="text-xs font-normal text-muted-foreground">Interactive picker arrives in Phase 2</span>
-            </span>
-          </div>
-        </div>
+      <Group label="Find your area">
+        <LocationAutocomplete
+          placeholder="Search a town, area, or landmark…"
+          onSelect={(s) => {
+            set('latitude', s.lat); set('longitude', s.lng)
+            if (s.city && !form.city) set('city', s.city)
+            if (s.district) set('district', s.district)
+          }}
+        />
+      </Group>
+      <Group label="Pin the exact location">
+        <PinPickerLoader
+          value={form.latitude != null && form.longitude != null ? { lat: form.latitude, lng: form.longitude } : null}
+          onChange={(p, rev) => {
+            set('latitude', p.lat); set('longitude', p.lng)
+            if (rev) {
+              if (rev.city && !form.city) set('city', rev.city)
+              if (rev.district) set('district', rev.district)
+              if (rev.address && !form.address) set('address', rev.address)
+            }
+          }}
+        />
+        <p className="mt-2 text-xs text-muted-foreground">Optional but recommended — pinned listings appear on the map and show nearby schools and amenities.</p>
       </Group>
     </div>
   )
@@ -243,6 +279,10 @@ function Details({ form, set }: StepProps) {
         </>}
         <Group label="Parking"><Input type="number" value={form.parking} onChange={(e) => set('parking', e.target.value)} placeholder="0" /></Group>
         <Group label="Land (perch)"><Input type="number" value={form.land_size} onChange={(e) => set('land_size', e.target.value)} placeholder="0" /></Group>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Group label="Contact phone"><Input type="tel" value={form.contact_phone} onChange={(e) => set('contact_phone', e.target.value)} placeholder="07X XXX XXXX" /></Group>
+        <Group label="WhatsApp (optional)"><Input type="tel" value={form.contact_whatsapp} onChange={(e) => set('contact_whatsapp', e.target.value)} placeholder="Same as phone if empty" /></Group>
       </div>
       <Group label="Amenities">
         <div className="flex flex-wrap gap-2">

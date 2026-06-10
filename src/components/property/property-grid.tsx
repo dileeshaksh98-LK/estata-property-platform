@@ -2,7 +2,7 @@ import { PropertyCard } from './property-card'
 import { EmptyState } from '@/components/common/empty-state'
 import type { Property } from '@/types/property'
 
-export function PropertyGrid({ properties }: { properties: Property[] }) {
+export function PropertyGrid({ properties, columns }: { properties: Property[]; columns?: 1 }) {
   if (!properties.length) {
     return (
       <EmptyState
@@ -13,7 +13,7 @@ export function PropertyGrid({ properties }: { properties: Property[] }) {
     )
   }
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className={columns === 1 ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'}>
       {properties.map((p, i) => (
         <PropertyCard key={p.id} property={p} priority={i < 3} />
       ))}

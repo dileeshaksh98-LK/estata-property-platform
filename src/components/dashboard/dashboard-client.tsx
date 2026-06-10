@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { deleteProperty } from '@/lib/actions/properties'
+import { deleteProperty, setListingStatus } from '@/lib/actions/properties'
 import { useToast } from '@/components/providers/toast-provider'
 import { EmailVerifyBanner } from '@/components/dashboard/email-verify-banner'
 import { updateProfile } from '@/lib/actions/profile'
@@ -88,6 +88,16 @@ function ListingsTab({ listings }: { listings: Property[] }) {
   const [pending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
 
+  function markDone(id: string, status: 'sold' | 'rented') {
+    setBusyId(id)
+    startTransition(async () => {
+      const res = await setListingStatus(id, status)
+      setBusyId(null)
+      if (res.ok) { toast({ title: `Marked as ${status}`, variant: 'success' }); router.refresh() }
+      else toast({ title: 'Could not update status', description: res.error, variant: 'error' })
+    })
+  }
+
   function remove(id: string, title: string) {
     if (!confirm(`Delete “${title}”? This can’t be undone.`)) return
     setBusyId(id)
@@ -132,7 +142,16 @@ function ListingsTab({ listings }: { listings: Property[] }) {
               <span className="flex items-center gap-1.5"><Inbox className="size-4" /> {p.contact_count}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" aria-label="Edit" asChild><Link href={`/properties/${p.slug}`}><Pencil className="size-4" /></Link></Button>
+              {p.status === 'active' && (
+                <Button
+                  variant="outline" size="sm" className="hidden sm:inline-flex"
+                  disabled={pending && busyId === p.id}
+                  onClick={() => markDone(p.id, p.listing_type === 'rent' ? 'rented' : 'sold')}
+                >
+                  Mark {p.listing_type === 'rent' ? 'rented' : 'sold'}
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" aria-label="Edit listing" asChild><Link href={`/dashboard/listings/${p.id}/edit`}><Pencil className="size-4" /></Link></Button>
               <Button variant="ghost" size="icon" aria-label="Delete" className="text-destructive" disabled={pending && busyId === p.id} onClick={() => remove(p.id, p.title)}>
                 <Trash2 className="size-4" />
               </Button>
