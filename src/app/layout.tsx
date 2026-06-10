@@ -3,6 +3,7 @@ import { Fraunces, Manrope } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { SavedProvider } from '@/components/providers/saved-provider'
+import { ToastProvider } from '@/components/providers/toast-provider'
 import { Navbar } from '@/components/layout/navbar'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Footer } from '@/components/layout/footer'
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh">
         <ThemeProvider>
           <SavedProvider>
+          <ToastProvider>
           <a href="#main" className="sr-only-focusable fixed left-4 top-4 z-[200] rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground">
             Skip to content
           </a>
@@ -56,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main id="main" className="pb-24 md:pb-0">{children}</main>
           <Footer />
           <MobileBottomNav />
+          </ToastProvider>
           </SavedProvider>
         </ThemeProvider>
       </body>

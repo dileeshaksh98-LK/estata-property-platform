@@ -26,6 +26,7 @@ export async function generateMetadata({
   const cover = p.property_images?.[0]?.url
   return {
     title: p.title,
+    alternates: { canonical: `/properties/${p.slug}` },
     description: p.description?.slice(0, 155) ?? SITE.description,
     openGraph: {
       title: p.title,

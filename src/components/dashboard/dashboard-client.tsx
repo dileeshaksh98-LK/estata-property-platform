@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { deleteProperty } from '@/lib/actions/properties'
+import { useToast } from '@/components/providers/toast-provider'
+import { EmailVerifyBanner } from '@/components/dashboard/email-verify-banner'
 import { updateProfile } from '@/lib/actions/profile'
 import { formatPrice, timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -51,6 +53,8 @@ export function DashboardClient({
         <Button asChild><Link href="/dashboard/listings/new"><Plus className="-ml-1" /> Add listing</Link></Button>
       </div>
 
+      <EmailVerifyBanner />
+
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="rounded-3xl border border-border bg-card p-5 shadow-soft">
@@ -80,6 +84,7 @@ export function DashboardClient({
 
 function ListingsTab({ listings }: { listings: Property[] }) {
   const router = useRouter()
+  const { toast } = useToast()
   const [pending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
 
@@ -89,8 +94,8 @@ function ListingsTab({ listings }: { listings: Property[] }) {
     startTransition(async () => {
       const res = await deleteProperty(id)
       setBusyId(null)
-      if (res.ok) router.refresh()
-      else alert(res.error)
+      if (res.ok) { toast({ title: 'Listing deleted', variant: 'success' }); router.refresh() }
+      else toast({ title: 'Could not delete listing', description: res.error, variant: 'error' })
     })
   }
 
@@ -165,6 +170,7 @@ function LeadsTab({ leads }: { leads: Lead[] }) {
 }
 
 function SettingsTab({ profile }: { profile: Profile | null }) {
+  const { toast } = useToast()
   const [pending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -178,8 +184,8 @@ function SettingsTab({ profile }: { profile: Profile | null }) {
         whatsapp: String(formData.get('whatsapp') || ''),
         bio: String(formData.get('bio') || ''),
       })
-      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2500) }
-      else setError(res.error)
+      if (res.ok) { setSaved(true); toast({ title: 'Profile updated', variant: 'success' }); setTimeout(() => setSaved(false), 2500) }
+      else { setError(res.error); toast({ title: 'Could not save profile', description: res.error, variant: 'error' }) }
     })
   }
 

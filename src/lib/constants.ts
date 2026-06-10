@@ -6,7 +6,7 @@ export const SITE = {
   tagline: "Sri Lanka's intelligent property platform",
   description:
     'Buy, sell and rent land, houses and apartments across Sri Lanka. Verified listings, AI search and real market intelligence.',
-  url: 'https://estata.lk',
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://estata-property-platform.vercel.app',
 }
 
 export const PROPERTY_TYPES: {

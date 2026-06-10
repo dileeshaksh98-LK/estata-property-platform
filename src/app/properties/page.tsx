@@ -6,6 +6,7 @@ import { listProperties } from '@/lib/db/properties.repo'
 import type { ListingFilters } from '@/types/property'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/properties' },
   title: 'Browse properties',
   description: 'Search verified land, houses and apartments for sale and rent across Sri Lanka.',
 }

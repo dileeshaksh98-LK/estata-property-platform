@@ -16,8 +16,6 @@ const COLUMNS = [
     links: [
       ['Post an ad', '/dashboard/listings/new'],
       ['Seller dashboard', '/dashboard'],
-      ['Pricing & boosts', '/pricing'],
-      ['Verification', '/verify'],
     ],
   },
   {
