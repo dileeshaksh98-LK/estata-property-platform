@@ -34,3 +34,21 @@ export function timeAgo(iso: string): string {
   if (diff < 30 * day) return `${Math.floor(diff / (7 * day))}w ago`
   return new Date(iso).toLocaleDateString('en-LK', { month: 'short', year: 'numeric' })
 }
+
+/** Digits-only phone, normalised to international format for Sri Lanka.
+ *  "077 123 4567" -> "94771234567" · "+94 77 123 4567" -> "94771234567"
+ *  Returns null when there's no usable number. */
+export function normalizePhoneLK(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  let d = raw.replace(/\D/g, '')
+  if (!d) return null
+  if (d.startsWith('0') && d.length === 10) d = '94' + d.slice(1)
+  if (d.length < 9) return null
+  return d
+}
+
+/** wa.me link for a raw phone, or null when the number is unusable. */
+export function whatsappLink(raw: string | null | undefined): string | null {
+  const n = normalizePhoneLK(raw)
+  return n ? `https://wa.me/${n}` : null
+}

@@ -6,6 +6,7 @@ import { Check, MessageCircle, Phone, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { sendInquiry } from '@/lib/actions/inquiries'
+import { whatsappLink } from '@/lib/format'
 import type { Property } from '@/types/property'
 
 export function ContactSellerModal({
@@ -17,8 +18,8 @@ export function ContactSellerModal({
   const openedAt = useRef<number>(0)
 
   const seller = property.profiles
-  const phone = seller?.phone ?? ''
-  const whatsapp = (seller?.whatsapp ?? phone).replace(/[^0-9]/g, '')
+  const phone = seller?.phone?.trim() || null
+  const wa = whatsappLink(seller?.whatsapp || seller?.phone)
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -77,16 +78,22 @@ export function ContactSellerModal({
                 <h3 className="font-display text-xl font-semibold">Contact {seller?.full_name ?? 'seller'}</h3>
                 <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">About: {property.title}</p>
 
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Button asChild variant="outline" disabled={!phone}><a href={`tel:${phone}`}><Phone /> Call</a></Button>
-                  <Button asChild variant="outline" className="text-[#25D366]" disabled={!whatsapp}>
-                    <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer"><MessageCircle /> WhatsApp</a>
-                  </Button>
-                </div>
-
-                <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="h-px flex-1 bg-border" /> or send a message <span className="h-px flex-1 bg-border" />
-                </div>
+                {(phone || wa) && (
+                  <>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      {phone && <Button asChild variant="outline"><a href={`tel:${phone}`}><Phone /> Call</a></Button>}
+                      {wa && (
+                        <Button asChild variant="outline" className="text-[#25D366]">
+                          <a href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle /> WhatsApp</a>
+                        </Button>
+                      )}
+                    </div>
+                    <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="h-px flex-1 bg-border" /> or send a message <span className="h-px flex-1 bg-border" />
+                    </div>
+                  </>
+                )}
+                {!phone && !wa && <div className="mt-4" />}
 
                 <form action={handleSubmit} className="space-y-3">
                   <Input name="name" placeholder="Your name" required />
