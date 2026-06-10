@@ -5,6 +5,7 @@ import { Marker, useMapEvents, useMap } from 'react-leaflet'
 import { LocateFixed } from 'lucide-react'
 import { BaseMap, pinIcon } from './map-base'
 import { LK_CENTER, isInLK } from '@/lib/geo'
+import { prefersReducedMotion } from '@/lib/prefers-reduced-motion'
 import type { ReverseResult } from '@/app/api/geo/reverse/route'
 
 export interface PinValue { lat: number; lng: number }
@@ -16,7 +17,11 @@ function ClickCatcher({ onPick }: { onPick: (p: PinValue) => void }) {
 
 function FlyTo({ point }: { point: PinValue | null }) {
   const map = useMap()
-  if (point) map.flyTo([point.lat, point.lng], Math.max(map.getZoom(), 15), { duration: 0.6 })
+  if (point) {
+    const z = Math.max(map.getZoom(), 15)
+    if (prefersReducedMotion()) map.setView([point.lat, point.lng], z)
+    else map.flyTo([point.lat, point.lng], z, { duration: 0.6 })
+  }
   return null
 }
 
@@ -52,7 +57,7 @@ export default function PinPicker({
 
   return (
     <div className="relative h-72 overflow-hidden rounded-3xl border border-border">
-      <BaseMap center={value ?? LK_CENTER} zoom={value ? 15 : 8}>
+      <BaseMap center={value ?? LK_CENTER} zoom={value ? 15 : 8} label="Location picker map">
         <ClickCatcher onPick={pick} />
         <FlyTo point={flyTo ?? value} />
         {value && (

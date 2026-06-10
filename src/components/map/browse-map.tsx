@@ -7,6 +7,7 @@ import Supercluster from 'supercluster'
 import { Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { BaseMap, clusterIcon, priceIcon } from './map-base'
 import { bboxToString, LK_CENTER } from '@/lib/geo'
+import { prefersReducedMotion } from '@/lib/prefers-reduced-motion'
 import { formatPrice } from '@/lib/format'
 import type { MapMarkerData } from '@/types/property'
 
@@ -44,7 +45,11 @@ function Clusters({ markers }: { markers: MapMarkerData[] }) {
           return (
             <Marker
               key={`c-${id}`} position={[lat, lng]} icon={clusterIcon(count)} keyboard alt={`${count} properties — zoom in`}
-              eventHandlers={{ click: () => map.flyTo([lat, lng], Math.min(index.getClusterExpansionZoom(id), 17), { duration: 0.5 }) }}
+              eventHandlers={{ click: () => {
+                const z = Math.min(index.getClusterExpansionZoom(id), 17)
+                if (prefersReducedMotion()) map.setView([lat, lng], z)
+                else map.flyTo([lat, lng], z, { duration: 0.5 })
+              } }}
             />
           )
         }
@@ -103,7 +108,11 @@ export default function BrowseMap({ markers }: { markers: MapMarkerData[] }) {
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-border">
-      <BaseMap center={center.center} zoom={center.zoom}>
+      <a href="#after-map" className="sr-only-focusable absolute left-3 top-14 z-[1001] rounded-full bg-card px-3 py-1.5 text-xs font-semibold shadow-lift">
+        Skip past map
+      </a>
+      <p className="sr-only" aria-live="polite">{markers.length} mapped {markers.length === 1 ? 'property' : 'properties'} shown on the map.</p>
+      <BaseMap center={center.center} zoom={center.zoom} label="Map of property listings">
         <Clusters markers={markers} />
         <MoveSync enabled={syncOn} />
       </BaseMap>
@@ -111,6 +120,7 @@ export default function BrowseMap({ markers }: { markers: MapMarkerData[] }) {
         <input type="checkbox" checked={syncOn} onChange={(e) => setSyncOn(e.target.checked)} className="size-3.5 accent-current" />
         Search as I move the map
       </label>
+      <span id="after-map" tabIndex={-1} className="sr-only">End of map</span>
       {markers.length === 0 && (
         <p className="absolute inset-x-0 bottom-4 z-[1000] mx-auto w-fit rounded-full bg-card/95 px-4 py-2 text-xs text-muted-foreground shadow-soft">
           No mapped listings in this area — listings without a pin still appear in the list

@@ -67,6 +67,12 @@ export interface ListingFilters {
   page?: number
   bbox?: string
   view?: 'list' | 'map'
+  /** "lat,lng" centre for radius search */
+  near?: string
+  /** radius in km (used with near) */
+  radius?: number
+  /** human label for the near point */
+  loc?: string
 }
 
 export interface MapMarkerData {

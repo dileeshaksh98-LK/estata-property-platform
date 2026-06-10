@@ -145,6 +145,10 @@ export interface Database {
       increment_view_count: { Args: { p_id: string }; Returns: undefined }
       increment_contact_count: { Args: { p_id: string }; Returns: undefined }
       get_seller_stats: { Args: Record<string, never>; Returns: SellerStats[] }
+      properties_within_radius: {
+        Args: { p_lat: number; p_lng: number; p_radius_m?: number; p_limit?: number }
+        Returns: Database['public']['Tables']['properties']['Row'][]
+      }
     }
     Enums: {
       user_role: UserRole

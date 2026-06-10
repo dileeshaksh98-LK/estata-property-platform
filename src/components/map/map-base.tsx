@@ -41,10 +41,12 @@ export function clusterIcon(count: number) {
 }
 
 export function BaseMap({
-  center = LK_CENTER, zoom = 13, className, children, scrollWheelZoom = true,
-}: { center?: { lat: number; lng: number }; zoom?: number; className?: string; children?: ReactNode; scrollWheelZoom?: boolean }) {
+  center = LK_CENTER, zoom = 13, className, children, scrollWheelZoom = true, label = 'Interactive map',
+}: { center?: { lat: number; lng: number }; zoom?: number; className?: string; children?: ReactNode; scrollWheelZoom?: boolean; label?: string }) {
   return (
-    <MapContainer
+    <div role="region" aria-label={label} className="h-full w-full">
+      <p className="sr-only">Interactive map. Use the arrow keys to pan and the plus and minus keys to zoom. Markers can be focused with Tab.</p>
+      <MapContainer
       center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom={scrollWheelZoom}
       className={className} style={{ height: '100%', width: '100%' }}
       attributionControl
@@ -52,5 +54,6 @@ export function BaseMap({
       <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
       {children}
     </MapContainer>
+    </div>
   )
 }

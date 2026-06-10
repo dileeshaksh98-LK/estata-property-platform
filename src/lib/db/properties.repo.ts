@@ -16,8 +16,65 @@ export interface ListResult {
   pageSize: number
 }
 
+function parseNear(near?: string): { lat: number; lng: number } | null {
+  if (!near) return null
+  const [lat, lng] = near.split(',').map(Number)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+  return { lat, lng }
+}
+
+/** Radius search: nearest active listings via the earthdistance RPC, then
+ *  filters applied in memory (result set is capped at 200 rows). */
+async function listPropertiesNearby(centre: { lat: number; lng: number }, f: ListingFilters): Promise<ListResult> {
+  const supabase = await createClient()
+  const radiusM = Math.min(Math.max(f.radius ?? 5, 1), 50) * 1000
+  const page = Math.max(1, f.page ?? 1)
+
+  const { data, error } = await supabase.rpc('properties_within_radius', {
+    p_lat: centre.lat, p_lng: centre.lng, p_radius_m: radiusM, p_limit: 200,
+  })
+  if (error) throw new Error(`listPropertiesNearby: ${error.message}`)
+
+  let rows = (data ?? []) as unknown as Property[]
+  if (f.type) rows = rows.filter((r) => r.property_type === f.type)
+  if (f.listing) rows = rows.filter((r) => r.listing_type === f.listing)
+  if (f.district) rows = rows.filter((r) => r.district === f.district)
+  if (typeof f.minPrice === 'number') rows = rows.filter((r) => r.price >= f.minPrice!)
+  if (typeof f.maxPrice === 'number') rows = rows.filter((r) => r.price <= f.maxPrice!)
+  if (typeof f.beds === 'number') rows = rows.filter((r) => (r.bedrooms ?? 0) >= f.beds!)
+  if (f.sort === 'price_asc') rows = [...rows].sort((a, b) => a.price - b.price)
+  else if (f.sort === 'price_desc') rows = [...rows].sort((a, b) => b.price - a.price)
+  else if (f.sort === 'views') rows = [...rows].sort((a, b) => b.view_count - a.view_count)
+  // default order: distance, as returned by the RPC
+
+  // Attach images for the visible page
+  const total = rows.length
+  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  if (pageRows.length) {
+    const { data: imgs } = await supabase
+      .from('property_images')
+      .select('id, property_id, url, is_primary, sort_order')
+      .in('property_id', pageRows.map((r) => r.id))
+    const byProp = new Map<string, NonNullable<typeof imgs>>()
+    for (const im of imgs ?? []) {
+      const arr = byProp.get(im.property_id) ?? []
+      arr.push(im)
+      byProp.set(im.property_id, arr)
+    }
+    for (const r of pageRows) {
+      r.property_images = (byProp.get(r.id) ?? []).map((im) => ({
+        id: im.id, url: im.url, is_primary: im.is_primary, sort_order: im.sort_order,
+      }))
+    }
+  }
+  return { listings: pageRows, total, page, pageSize: PAGE_SIZE }
+}
+
 /** Public, filtered, paginated listing query (RLS exposes only active rows). */
 export async function listProperties(f: ListingFilters = {}): Promise<ListResult> {
+  const centre = parseNear(f.near)
+  if (centre) return listPropertiesNearby(centre, f)
+
   const supabase = await createClient()
   const page = Math.max(1, f.page ?? 1)
   const from = (page - 1) * PAGE_SIZE
