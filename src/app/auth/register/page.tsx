@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { AuthShell, GoogleIcon } from '../login/page'
+import { AuthShell, GoogleIcon } from '@/components/auth/auth-shell'
 import { createClient, supabaseEnabled } from '@/lib/supabase/client'
 import { SITE } from '@/lib/constants'
 
