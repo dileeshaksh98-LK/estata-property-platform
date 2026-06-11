@@ -7,7 +7,7 @@ import { SITE } from '@/lib/constants'
 /** Shared auth card shell used by the login and register pages. */
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <div className="grain mesh relative flex min-h-[calc(100dvh-4rem)] items-center justify-center px-5 py-12">
+    <div className="grain mesh relative flex min-h-[calc(100dvh-4rem)] items-center justify-center px-5 py-12 pb-[max(3rem,env(safe-area-inset-bottom))]">
       <motion.div
         initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md rounded-4xl border border-border bg-card/90 p-8 shadow-lift backdrop-blur-xl"

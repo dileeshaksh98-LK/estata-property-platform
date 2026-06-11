@@ -2,19 +2,34 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { KeyRound, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AuthShell, GoogleIcon } from '@/components/auth/auth-shell'
 import { createClient, supabaseEnabled } from '@/lib/supabase/client'
+import { safeInternalPath } from '@/lib/auth/safe-redirect'
+import { useToast } from '@/components/providers/toast-provider'
 import { SITE } from '@/lib/constants'
 
 function LoginInner() {
   const router = useRouter()
   const params = useSearchParams()
-  const redirectTo = params.get('redirect') || '/dashboard'
+  const { toast } = useToast()
+  const redirectTo = safeInternalPath(params.get('redirect'))
+  const prefillEmail = params.get('email') ?? ''
+  const justRegistered = params.get('registered') === '1'
   const initialError = params.get('error') ? 'Sign-in failed. Please try again.' : null
+  const passwordRef = useRef<HTMLInputElement>(null)
+
+  // Hand-off from registration: prefill email, focus password, confirm success.
+  useEffect(() => {
+    if (justRegistered) {
+      toast({ title: 'Account created successfully', description: 'Sign in to continue.', variant: 'success' })
+      passwordRef.current?.focus()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [mode, setMode] = useState<'password' | 'otp'>('password')
   const [otpStage, setOtpStage] = useState<'request' | 'verify'>('request')
@@ -44,8 +59,16 @@ function LoginInner() {
       password: String(formData.get('password')),
     })
     setLoading(false)
-    if (error) setNotice(error.message)
-    else { router.push(redirectTo); router.refresh() }
+    if (error) {
+      setNotice(
+        /invalid login credentials/i.test(error.message) ? 'Incorrect email or password. Please try again.'
+        : /email not confirmed/i.test(error.message) ? 'Please confirm your email first — check your inbox for the link.'
+        : error.message,
+      )
+    } else {
+      toast({ title: 'Welcome back!', variant: 'success' })
+      router.push(redirectTo); router.refresh()
+    }
   }
 
   async function sendCode(formData: FormData) {
@@ -88,9 +111,9 @@ function LoginInner() {
 
       {mode === 'password' ? (
         <form action={passwordLogin} className="space-y-3">
-          <Input name="email" type="email" placeholder="Email address" required />
-          <Input name="password" type="password" placeholder="Password" required />
-          <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</Button>
+          <Input name="email" type="email" placeholder="Email address" defaultValue={prefillEmail} autoComplete="email" required className="h-12" />
+          <Input ref={passwordRef} name="password" type="password" placeholder="Password" autoComplete="current-password" required className="h-12" />
+          <Button type="submit" className="h-12 w-full" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</Button>
         </form>
       ) : otpStage === 'request' ? (
         <form action={sendCode} className="space-y-3">

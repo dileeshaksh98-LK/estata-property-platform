@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AuthShell, GoogleIcon } from '@/components/auth/auth-shell'
 import { createClient, supabaseEnabled } from '@/lib/supabase/client'
+import { useToast } from '@/components/providers/toast-provider'
 import { SITE } from '@/lib/constants'
 
 const PERKS = ['Free property listings', 'Save & compare homes', 'Direct chat with sellers']
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -30,12 +32,10 @@ export default function RegisterPage() {
 
   async function register(formData: FormData) {
     setNotice(null)
-    const first = String(formData.get('first_name') ?? '').trim()
-    const last = String(formData.get('last_name') ?? '').trim()
-    const name = `${first} ${last}`.trim()
+    const name = String(formData.get('name') ?? '').trim()
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
-    if (first.length < 2 || last.length < 1) return setNotice('Please enter your first and last name.')
+    if (name.length < 2) return setNotice('Please enter your full name.')
     if (password.length < 8) return setNotice('Password must be at least 8 characters.')
     if (!supabaseEnabled) return notConfigured()
 
@@ -46,10 +46,21 @@ export default function RegisterPage() {
       options: { data: { full_name: name }, emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
     })
     setLoading(false)
-    if (error) return setNotice(error.message)
-    // If email confirmation is disabled, a session is returned immediately.
-    if (data.session) { router.push('/dashboard'); router.refresh() }
-    else setNotice('Almost there — check your inbox for a confirmation email, then sign in here.')
+    if (error) {
+      return setNotice(
+        /already registered|already exists/i.test(error.message)
+          ? 'This email already has an account — sign in instead.'
+          : error.message,
+      )
+    }
+    // Instant session (email confirmation off): zero-friction straight to dashboard.
+    if (data.session) {
+      toast({ title: 'Account created successfully', variant: 'success' })
+      router.push('/dashboard'); router.refresh()
+      return
+    }
+    // Otherwise: hand off to login with email prefilled and password focused.
+    router.push(`/auth/login?registered=1&email=${encodeURIComponent(email)}`)
   }
 
   return (
@@ -66,13 +77,10 @@ export default function RegisterPage() {
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" /></div>
 
       <form action={register} className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <Input name="first_name" placeholder="First name" required autoComplete="given-name" />
-          <Input name="last_name" placeholder="Last name" required autoComplete="family-name" />
-        </div>
-        <Input name="email" type="email" placeholder="Email address" required />
-        <Input name="password" type="password" placeholder="Password (min 8 characters)" required />
-        <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Creating account…' : 'Create account'}</Button>
+        <Input name="name" placeholder="Full name" required autoComplete="name" className="h-12" />
+        <Input name="email" type="email" placeholder="Email address" autoComplete="email" required className="h-12" />
+        <Input name="password" type="password" placeholder="Password (min 8 characters)" autoComplete="new-password" required className="h-12" />
+        <Button type="submit" className="h-12 w-full" disabled={loading}>{loading ? 'Creating account…' : 'Create account'}</Button>
       </form>
 
       {notice && <p className="mt-4 rounded-xl bg-secondary p-3 text-sm text-muted-foreground">{notice}</p>}
