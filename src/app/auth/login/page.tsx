@@ -82,21 +82,7 @@ function LoginInner() {
     })
     setLoading(false)
     if (error) setNotice(error.message)
-    else { setOtpEmail(email); setOtpStage('verify'); setNotice('We emailed you a 6-digit code (and a magic link).') }
-  }
-
-  async function verifyCode(formData: FormData) {
-    if (!supabaseEnabled) return notConfigured()
-    setLoading(true); setNotice(null)
-    const supabase = createClient()
-    const { error } = await supabase.auth.verifyOtp({
-      email: otpEmail,
-      token: String(formData.get('code')),
-      type: 'email',
-    })
-    setLoading(false)
-    if (error) setNotice(error.message)
-    else { router.push(redirectTo); router.refresh() }
+    else { setOtpEmail(email); setOtpStage('verify'); setNotice(null) }
   }
 
   return (
@@ -106,7 +92,7 @@ function LoginInner() {
 
       <div className="mb-4 inline-flex w-full rounded-2xl bg-secondary p-1">
         <Tab active={mode === 'password'} onClick={() => { setMode('password'); setNotice(null) }} icon={KeyRound}>Password</Tab>
-        <Tab active={mode === 'otp'} onClick={() => { setMode('otp'); setOtpStage('request'); setNotice(null) }} icon={Mail}>Email code</Tab>
+        <Tab active={mode === 'otp'} onClick={() => { setMode('otp'); setOtpStage('request'); setNotice(null) }} icon={Mail}>Email link</Tab>
       </div>
 
       {mode === 'password' ? (
@@ -118,15 +104,25 @@ function LoginInner() {
       ) : otpStage === 'request' ? (
         <form action={sendCode} className="space-y-3">
           <Input name="email" type="email" placeholder="Email address" required />
-          <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Sending…' : 'Email me a code'}</Button>
+          <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Sending…' : 'Email me a sign-in link'}</Button>
         </form>
       ) : (
-        <form action={verifyCode} className="space-y-3">
-          <p className="text-sm text-muted-foreground">Enter the code sent to <span className="font-medium text-foreground">{otpEmail}</span></p>
-          <Input name="code" inputMode="numeric" placeholder="6-digit code" className="text-center tracking-[0.5em]" required />
-          <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Verifying…' : 'Verify & sign in'}</Button>
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-secondary p-4 text-sm">
+            <p className="font-medium">Check your inbox ✉️</p>
+            <p className="mt-1 text-muted-foreground">
+              We sent a sign-in link to <span className="font-medium text-foreground">{otpEmail}</span>.
+              Open it <span className="font-medium text-foreground">on this device</span> and you'll be signed in automatically.
+            </p>
+          </div>
+          <Button
+            variant="outline" className="h-12 w-full" disabled={loading}
+            onClick={() => { const fd = new FormData(); fd.set('email', otpEmail); sendCode(fd) }}
+          >
+            {loading ? 'Sending…' : 'Resend link'}
+          </Button>
           <button type="button" onClick={() => setOtpStage('request')} className="w-full text-center text-sm text-muted-foreground hover:text-foreground">Use a different email</button>
-        </form>
+        </div>
       )}
 
       {notice && <p className="mt-4 rounded-xl bg-secondary p-3 text-sm text-muted-foreground">{notice}</p>}
