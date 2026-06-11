@@ -30,10 +30,12 @@ export default function RegisterPage() {
 
   async function register(formData: FormData) {
     setNotice(null)
-    const name = String(formData.get('name')).trim()
+    const first = String(formData.get('first_name') ?? '').trim()
+    const last = String(formData.get('last_name') ?? '').trim()
+    const name = `${first} ${last}`.trim()
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
-    if (name.length < 2) return setNotice('Please enter your full name.')
+    if (first.length < 2 || last.length < 1) return setNotice('Please enter your first and last name.')
     if (password.length < 8) return setNotice('Password must be at least 8 characters.')
     if (!supabaseEnabled) return notConfigured()
 
@@ -47,7 +49,7 @@ export default function RegisterPage() {
     if (error) return setNotice(error.message)
     // If email confirmation is disabled, a session is returned immediately.
     if (data.session) { router.push('/dashboard'); router.refresh() }
-    else setNotice('Check your inbox to confirm your email, then sign in.')
+    else setNotice('Almost there — check your inbox for a confirmation email, then sign in here.')
   }
 
   return (
@@ -64,7 +66,10 @@ export default function RegisterPage() {
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" /></div>
 
       <form action={register} className="space-y-3">
-        <Input name="name" placeholder="Full name" required />
+        <div className="grid grid-cols-2 gap-3">
+          <Input name="first_name" placeholder="First name" required autoComplete="given-name" />
+          <Input name="last_name" placeholder="Last name" required autoComplete="family-name" />
+        </div>
         <Input name="email" type="email" placeholder="Email address" required />
         <Input name="password" type="password" placeholder="Password (min 8 characters)" required />
         <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Creating account…' : 'Create account'}</Button>
