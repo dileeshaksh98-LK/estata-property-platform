@@ -10,6 +10,7 @@ const FALLBACK = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?a
 
 export function ImageGallery({ images, title }: { images?: PropertyImage[]; title: string }) {
   const urls = images?.length ? images.map((i) => i.url) : [FALLBACK]
+  const count = urls.length
   const [active, setActive] = useState(0)
   const [open, setOpen] = useState(false)
 
@@ -33,27 +34,40 @@ export function ImageGallery({ images, title }: { images?: PropertyImage[]; titl
 
   return (
     <>
-      {/* Desktop mosaic / mobile single + thumb rail */}
-      <div className="grid gap-2 sm:grid-cols-4 sm:grid-rows-2">
+      {/* Single photo: full-width hero. The mosaic needs side tiles to size its
+          rows, so with <5 photos the hero keeps a fixed aspect ratio instead. */}
+      {count === 1 ? (
         <button
           onClick={() => setOpen(true)}
-          className="group relative col-span-2 row-span-2 aspect-[4/3] overflow-hidden rounded-3xl sm:aspect-auto"
+          className="group relative block aspect-[4/3] w-full overflow-hidden rounded-3xl sm:aspect-[2/1]"
         >
-          <Image src={urls[0]} alt={title} fill priority sizes="(max-width:640px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+          <Image src={urls[0]} alt={title} fill priority sizes="100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
           <span className="glass absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium">
-            <Expand className="size-3.5" /> View all {urls.length}
+            <Expand className="size-3.5" /> View photo
           </span>
         </button>
-        {urls.slice(1, 5).map((url, i) => (
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-4 sm:grid-rows-2">
           <button
-            key={i}
-            onClick={() => { setActive(i + 1); setOpen(true) }}
-            className="group relative hidden aspect-[4/3] overflow-hidden rounded-2xl sm:block"
+            onClick={() => setOpen(true)}
+            className={`group relative col-span-2 row-span-2 aspect-[4/3] overflow-hidden rounded-3xl ${count >= 5 ? 'sm:aspect-auto' : ''}`}
           >
-            <Image src={url} alt={`${title} photo ${i + 2}`} fill sizes="25vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+            <Image src={urls[0]} alt={title} fill priority sizes="(max-width:640px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+            <span className="glass absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium">
+              <Expand className="size-3.5" /> View all {urls.length}
+            </span>
           </button>
-        ))}
-      </div>
+          {urls.slice(1, 5).map((url, i) => (
+            <button
+              key={i}
+              onClick={() => { setActive(i + 1); setOpen(true) }}
+              className="group relative hidden aspect-[4/3] overflow-hidden rounded-2xl sm:block"
+            >
+              <Image src={url} alt={`${title} photo ${i + 2}`} fill sizes="25vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* mobile thumbnails */}
       {urls.length > 1 && (
