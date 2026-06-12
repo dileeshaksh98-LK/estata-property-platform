@@ -42,6 +42,7 @@ interface FormState {
   city: string
   address: string
   price: string
+  negotiable: boolean
   bedrooms: string
   bathrooms: string
   parking: string
@@ -56,7 +57,7 @@ interface FormState {
 
 const initial: FormState = {
   property_type: 'house', listing_type: 'sale', title: '', description: '',
-  district: '', city: '', address: '', price: '', bedrooms: '', bathrooms: '',
+  district: '', city: '', address: '', price: '', negotiable: false, bedrooms: '', bathrooms: '',
   parking: '', land_size: '', amenities: [], images: [],
   latitude: null, longitude: null, contact_phone: '', contact_whatsapp: '',
 }
@@ -127,6 +128,8 @@ export default function NewListingPage() {
         property_type: form.property_type,
         listing_type: form.listing_type,
         price: Number(form.price),
+        negotiable: form.negotiable,
+        amenities: form.amenities,
         district: form.district,
         city: form.city,
         address: form.address,
@@ -271,6 +274,15 @@ function Details({ form, set }: StepProps) {
     <div className="space-y-6">
       <Group label={`Price (LKR)${form.listing_type === 'rent' ? ' / month' : ''}`}>
         <Input type="number" value={form.price} onChange={(e) => set('price', e.target.value)} placeholder="e.g. 45000000" />
+        <label className="mt-2 flex w-fit cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={form.negotiable}
+            onChange={(e) => set('negotiable', e.target.checked)}
+            className="size-4 rounded border-border accent-primary"
+          />
+          Price is negotiable
+        </label>
       </Group>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {showRooms && <>
@@ -352,7 +364,7 @@ function Review({ form, doneImages }: { form: FormState; doneImages: ImageItem[]
   const preview: Property = {
     id: 'preview', owner_id: 'me', slug: '#', title: form.title || 'Your listing title',
     description: form.description, property_type: form.property_type, listing_type: form.listing_type,
-    status: 'draft', price: Number(form.price) || 0, price_per_unit: false, currency: 'LKR',
+    status: 'draft', price: Number(form.price) || 0, price_per_unit: false, negotiable: form.negotiable, amenities: form.amenities, currency: 'LKR',
     address: form.address, city: form.city || 'Your city', district: form.district || 'District', province: null,
     latitude: null, longitude: null, land_size: Number(form.land_size) || null, land_size_unit: 'perch',
     building_sqft: null, bedrooms: Number(form.bedrooms) || null, bathrooms: Number(form.bathrooms) || null,

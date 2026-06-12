@@ -33,6 +33,8 @@ export interface Property {
   status: ListingStatus
   price: number
   price_per_unit: boolean
+  negotiable: boolean
+  amenities: string[]
   currency: string
   address: string | null
   city: string | null

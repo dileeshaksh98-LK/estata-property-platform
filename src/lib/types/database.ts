@@ -50,6 +50,8 @@ export interface Database {
           status: ListingStatusDB
           price: number
           price_per_unit: boolean
+          negotiable: boolean
+          amenities: string[]
           currency: string
           address: string | null
           city: string | null
@@ -84,6 +86,8 @@ export interface Database {
           status?: ListingStatusDB
           price: number
           price_per_unit?: boolean
+          negotiable?: boolean
+          amenities?: string[]
           currency?: string
           address?: string | null
           city?: string | null

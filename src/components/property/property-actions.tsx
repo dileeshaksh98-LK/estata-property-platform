@@ -28,7 +28,10 @@ export function PropertyActions({ property }: { property: Property }) {
     <>
       {/* Desktop sidebar card */}
       <div className="sticky top-24 hidden rounded-3xl border border-border bg-card p-6 shadow-soft lg:block">
-        <p className="text-sm text-muted-foreground">{isRent ? 'Monthly rent' : 'Asking price'}</p>
+        <p className="text-sm text-muted-foreground">
+          {isRent ? 'Monthly rent' : 'Asking price'}
+          {property.negotiable && <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Negotiable</span>}
+        </p>
         <p className="mt-1 font-display text-3xl font-semibold text-primary">
           {formatPriceFull(property.price)}{isRent && <span className="text-base font-normal text-muted-foreground"> /mo</span>}
         </p>
@@ -57,7 +60,10 @@ export function PropertyActions({ property }: { property: Property }) {
         <div className="glass-strong mx-3 flex items-center gap-3 rounded-2xl border border-border p-3 shadow-lift">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] text-muted-foreground">{isRent ? 'Rent' : 'Price'}</p>
-            <p className="truncate font-display text-lg font-semibold text-primary">{formatPriceFull(property.price)}</p>
+            <p className="truncate font-display text-lg font-semibold text-primary">
+              {formatPriceFull(property.price)}
+              {property.negotiable && <span className="ml-1.5 align-middle rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Negotiable</span>}
+            </p>
           </div>
           <SaveButton id={property.id} variant="inline" />
           <Button className="flex-1" onClick={() => setOpen(true)}>Contact</Button>

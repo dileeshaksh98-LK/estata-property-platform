@@ -49,6 +49,8 @@ export function EditListingClient({ property }: { property: Property }) {
     property_type: property.property_type as PropertyType,
     listing_type: property.listing_type as ListingType,
     price: String(property.price),
+    negotiable: property.negotiable ?? false,
+    amenities: property.amenities ?? [],
     district: property.district ?? '',
     city: property.city ?? '',
     address: property.address ?? '',
@@ -124,6 +126,8 @@ export function EditListingClient({ property }: { property: Property }) {
         property_type: f.property_type,
         listing_type: f.listing_type,
         price: Number(f.price),
+        negotiable: f.negotiable,
+        amenities: f.amenities,
         district: f.district,
         city: f.city,
         address: f.address,
@@ -197,6 +201,10 @@ export function EditListingClient({ property }: { property: Property }) {
           </Group>
           <Group label={`Price (LKR)${f.listing_type === 'rent' ? ' / month' : ''}`}>
             <Input type="number" value={f.price} onChange={(e) => set('price', e.target.value)} />
+            <label className="mt-2 flex w-fit cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" checked={f.negotiable} onChange={(e) => set('negotiable', e.target.checked)} className="size-4 rounded border-border accent-primary" />
+              Price is negotiable
+            </label>
           </Group>
         </div>
         <Group label="Title"><Input value={f.title} onChange={(e) => set('title', e.target.value)} /></Group>

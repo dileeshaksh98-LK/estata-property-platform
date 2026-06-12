@@ -128,6 +128,17 @@ export default async function PropertyDetailPage({
             <p className="mt-3 leading-relaxed text-muted-foreground text-pretty">{property.description}</p>
           </section>
 
+          {property.amenities?.length > 0 && (
+            <section className="mt-8">
+              <h2 className="font-display text-xl font-semibold">Amenities</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {property.amenities.map((a) => (
+                  <span key={a} className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-sm">{a}</span>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="mt-8">
             <h2 className="font-display text-xl font-semibold">Location</h2>
             {property.latitude != null && property.longitude != null ? (

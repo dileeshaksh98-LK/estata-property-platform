@@ -62,6 +62,9 @@ export function PropertyCard({ property, priority = false }: { property: Propert
               {property.price_per_unit && (
                 <span className="text-sm font-normal text-white/85"> /perch</span>
               )}
+              {property.negotiable && (
+                <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 align-middle text-xs font-medium text-white/95 backdrop-blur-sm">Negotiable</span>
+              )}
             </p>
           </div>
         </div>
