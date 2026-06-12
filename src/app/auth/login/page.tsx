@@ -99,6 +99,9 @@ function LoginInner() {
         <form action={passwordLogin} className="space-y-3">
           <Input name="email" type="email" placeholder="Email address" defaultValue={prefillEmail} autoComplete="email" required className="h-12" />
           <Input ref={passwordRef} name="password" type="password" placeholder="Password" autoComplete="current-password" required className="h-12" />
+          <div className="text-right">
+            <Link href="/auth/forgot" className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">Forgot password?</Link>
+          </div>
           <Button type="submit" className="h-12 w-full" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</Button>
         </form>
       ) : otpStage === 'request' ? (
