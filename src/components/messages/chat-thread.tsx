@@ -31,7 +31,21 @@ export function ChatThread({
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         (payload) => {
           const m = payload.new as Message
-          setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]))
+          setMessages((prev) => {
+            // Already have the real row? ignore.
+            if (prev.some((x) => x.id === m.id)) return prev
+            // If this is the echo of our own optimistic message, swap it in
+            // (match the pending tmp- row by sender + body) rather than adding a duplicate.
+            if (m.sender_id === currentUserId) {
+              const idx = prev.findIndex((x) => x.id.startsWith('tmp-') && x.body === m.body)
+              if (idx !== -1) {
+                const next = prev.slice()
+                next[idx] = m
+                return next
+              }
+            }
+            return [...prev, m]
+          })
           if (m.sender_id !== currentUserId) markConversationRead(conversationId)
         },
       )
@@ -59,13 +73,17 @@ export function ChatThread({
     }
   }
 
+  // Belt-and-suspenders: never render duplicate IDs even if an event double-fires.
+  const seen = new Set<string>()
+  const view = messages.filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true)))
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 space-y-2 overflow-y-auto p-4">
-        {messages.length === 0 && (
+        {view.length === 0 && (
           <p className="py-8 text-center text-sm text-muted-foreground">No messages yet. Say hello 👋</p>
         )}
-        {messages.map((m) => {
+        {view.map((m) => {
           const mine = m.sender_id === currentUserId
           return (
             <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
