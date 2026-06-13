@@ -28,10 +28,10 @@ export async function generateMetadata({
   return {
     title: p.title,
     alternates: { canonical: `/properties/${p.slug}` },
-    description: p.description?.slice(0, 155) ?? SITE.description,
+    description: p.description?.replace(/\s+/g, ' ').trim().slice(0, 155) || SITE.description,
     openGraph: {
       title: p.title,
-      description: p.description ?? '',
+      description: p.description?.replace(/\s+/g, ' ').trim() ?? '',
       images: cover ? [{ url: cover }] : undefined,
       type: 'website',
     },
@@ -125,7 +125,7 @@ export default async function PropertyDetailPage({
           {/* description */}
           <section className="mt-8">
             <h2 className="font-display text-xl font-semibold">About this property</h2>
-            <p className="mt-3 leading-relaxed text-muted-foreground text-pretty">{property.description}</p>
+            <p className="mt-3 whitespace-pre-line leading-relaxed text-muted-foreground text-pretty">{property.description}</p>
           </section>
 
           {property.amenities?.length > 0 && (
