@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Share2 } from 'lucide-react'
+import { Check, Share2, MessageCircle, Facebook, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SaveButton } from './save-button'
 import { ContactSellerModal } from './contact-seller-modal'
@@ -11,18 +11,37 @@ import type { Property } from '@/types/property'
 export function PropertyActions({ property }: { property: Property }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const isRent = property.listing_type === 'rent'
 
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const shareText = `${property.title} - ${formatPriceFull(property.price)} | Estata`
+
   async function share() {
-    const url = typeof window !== 'undefined' ? window.location.href : ''
-    if (navigator.share) {
-      try { await navigator.share({ title: property.title, url }) } catch {}
-    } else {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1800)
+    // Native share sheet on mobile; explicit menu fallback on desktop.
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try { await navigator.share({ title: property.title, text: shareText, url: shareUrl }); return } catch {}
     }
+    setShareOpen((v) => !v)
   }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+    } catch {
+      // Fallback for browsers blocking the clipboard API
+      const ta = document.createElement('textarea')
+      ta.value = shareUrl; ta.style.position = 'fixed'; ta.style.opacity = '0'
+      document.body.appendChild(ta); ta.select()
+      try { document.execCommand('copy') } catch {}
+      document.body.removeChild(ta)
+    }
+    setCopied(true); setShareOpen(false)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
+  const waHref = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`
+  const fbHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
 
   return (
     <>
@@ -48,9 +67,30 @@ export function PropertyActions({ property }: { property: Property }) {
 
         <Button className="mt-4 w-full" size="lg" onClick={() => setOpen(true)}>Contact seller</Button>
         <div className="mt-2 flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={share}>
-            {copied ? <><Check /> Copied</> : <><Share2 /> Share</>}
-          </Button>
+          <div className="relative flex-1">
+            <Button variant="outline" className="w-full" onClick={share}>
+              {copied ? <><Check /> Copied</> : <><Share2 /> Share</>}
+            </Button>
+            {shareOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShareOpen(false)} />
+                <div className="absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
+                  <a href={waHref} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)}
+                     className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-secondary">
+                    <MessageCircle className="size-4 text-primary" /> Share on WhatsApp
+                  </a>
+                  <a href={fbHref} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)}
+                     className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-secondary">
+                    <Facebook className="size-4 text-primary" /> Share on Facebook
+                  </a>
+                  <button type="button" onClick={copyLink}
+                     className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm hover:bg-secondary">
+                    <Link2 className="size-4 text-primary" /> Copy link
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <SaveButton id={property.id} variant="inline" />
         </div>
       </div>

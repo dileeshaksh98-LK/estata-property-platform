@@ -24,7 +24,7 @@ export default function AboutPage() {
     <PageShell
       eyebrow="About us"
       title={`A better way to find property in Sri Lanka`}
-      intro={`${SITE.name} is a modern marketplace for land, houses, apartments and commercial property across all 25 districts. We connect buyers and sellers directly — with transparent pricing, verified sellers, and tools that make the search genuinely easier.`}
+      intro={`${SITE.name} is a modern marketplace for land, houses, apartments and commercial property across all 25 districts. We connect buyers and sellers directly — with transparent pricing, direct contact, and tools that make the search genuinely easier.`}
     >
       <Section title="What we're building">
         <p>

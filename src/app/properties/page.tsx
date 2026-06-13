@@ -13,7 +13,7 @@ import type { ListingFilters } from '@/types/property'
 export const metadata: Metadata = {
   alternates: { canonical: '/properties' },
   title: 'Browse properties',
-  description: 'Search verified land, houses and apartments for sale and rent across Sri Lanka.',
+  description: 'Search land, houses and apartments for sale and rent across Sri Lanka on a live map.',
 }
 
 type SP = Record<string, string | string[] | undefined>

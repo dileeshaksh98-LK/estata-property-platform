@@ -17,10 +17,10 @@ const STATS = [
   { value: 'LKR 48B', label: 'Property listed' },
 ]
 
-const TESTIMONIALS = [
-  { quote: 'Found our family home in three weeks. The verified badge gave us real confidence.', name: 'Dilani & Suresh', role: 'Bought in Nugegoda' },
-  { quote: 'Sold my land in nine days. The boost feature put it right at the top of search.', name: 'Mahesh Fernando', role: 'Sold in Kandy' },
-  { quote: 'The AI search actually understood "quiet area near good schools". Genuinely useful.', name: 'Ayesha R.', role: 'Renting in Colombo 5' },
+const WHY = [
+  { title: 'Every property on a live map', body: 'Browse with prices shown right on the pins, and see results update as you move the map.' },
+  { title: 'Know the neighbourhood', body: 'Each pinned listing shows the nearest schools, hospitals, supermarkets and transport — automatically, with real distances.' },
+  { title: 'Direct & free', body: 'Post your property free and talk to buyers directly by call or WhatsApp. No brokers, no commission.' },
 ]
 
 export default async function HomePage() {
@@ -47,7 +47,7 @@ export default async function HomePage() {
           </Reveal>
           <Reveal delay={0.16}>
             <p className="mt-5 max-w-xl text-base text-muted-foreground text-pretty md:text-lg">
-              Buy, sell and rent land, houses and apartments across all 25 districts — with verified listings and real market intelligence.
+              Buy, sell and rent land, houses and apartments across all 25 districts - on a live map that shows nearby schools, hospitals and transport for every listing.
             </p>
           </Reveal>
 
@@ -177,23 +177,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─────────────── TESTIMONIALS ─────────────── */}
+      {/* ─────────────── WHY ESTATA ─────────────── */}
       <section className="container mt-20">
-        <SectionHeading eyebrow="Loved by Sri Lankans" title="People find their place here" />
+        <SectionHeading eyebrow="Why Estata" title="A clearer way to find property" />
         <div className="grid gap-5 md:grid-cols-3">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.name} delay={i * 0.08}>
+          {WHY.map((w, i) => (
+            <Reveal key={w.title} delay={i * 0.08}>
               <figure className="flex h-full flex-col rounded-3xl border border-border bg-card p-7 shadow-soft">
-                <blockquote className="flex-1 font-display text-lg leading-relaxed text-pretty">“{t.quote}”</blockquote>
-                <figcaption className="mt-6 flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-full bg-primary/10 font-display font-semibold text-primary">
-                    {t.name.charAt(0)}
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
-                </figcaption>
+                <h3 className="font-display text-lg font-semibold">{w.title}</h3>
+                <p className="mt-3 flex-1 leading-relaxed text-muted-foreground text-pretty">{w.body}</p>
               </figure>
             </Reveal>
           ))}
