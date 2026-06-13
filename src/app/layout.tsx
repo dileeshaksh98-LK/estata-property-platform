@@ -22,11 +22,11 @@ const sans = Manrope({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
-  title: { default: `${SITE.name} — ${SITE.tagline}`, template: `%s · ${SITE.name}` },
+  title: { default: `${SITE.name} - ${SITE.tagline}`, template: `%s - ${SITE.name}` },
   description: SITE.description,
   keywords: ['Sri Lanka property', 'land for sale', 'houses Colombo', 'apartments', 'real estate Sri Lanka'],
   openGraph: {
-    title: `${SITE.name} — ${SITE.tagline}`,
+    title: `${SITE.name} - ${SITE.tagline}`,
     description: SITE.description,
     url: SITE.url,
     siteName: SITE.name,
