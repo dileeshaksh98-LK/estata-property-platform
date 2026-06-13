@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { sendInquiry } from '@/lib/actions/inquiries'
 import { whatsappLink } from '@/lib/format'
+import { MessageSellerButton } from './message-seller-button'
 import type { Property } from '@/types/property'
 
 export function ContactSellerModal({
@@ -90,12 +91,20 @@ export function ContactSellerModal({
                         </Button>
                       )}
                     </div>
+                    <MessageSellerButton propertyId={property.id} className="mt-2 w-full" />
                     <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="h-px flex-1 bg-border" /> or send a message <span className="h-px flex-1 bg-border" />
+                      <span className="h-px flex-1 bg-border" /> or send your details <span className="h-px flex-1 bg-border" />
                     </div>
                   </>
                 )}
-                {!phone && !wa && <div className="mt-4" />}
+                {!phone && !wa && (
+                  <>
+                    <MessageSellerButton propertyId={property.id} className="mt-4 w-full" />
+                    <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="h-px flex-1 bg-border" /> or send your details <span className="h-px flex-1 bg-border" />
+                    </div>
+                  </>
+                )}
 
                 <form action={handleSubmit} className="space-y-3">
                   <Input name="name" placeholder="Your name" required />

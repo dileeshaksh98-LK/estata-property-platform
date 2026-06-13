@@ -88,3 +88,29 @@ export interface MapMarkerData {
   lng: number
   cover: string | null
 }
+
+export interface Conversation {
+  id: string
+  property_id: string
+  buyer_id: string
+  seller_id: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Message {
+  id: string
+  conversation_id: string
+  sender_id: string
+  body: string
+  read_at: string | null
+  created_at: string
+}
+
+/** Inbox row: conversation joined with the other party + property summary. */
+export interface ConversationSummary extends Conversation {
+  property: { id: string; slug: string; title: string; price: number; cover_url: string | null } | null
+  other: { id: string; full_name: string | null } | null
+  last_message: { body: string; created_at: string; sender_id: string } | null
+  unread: number
+}

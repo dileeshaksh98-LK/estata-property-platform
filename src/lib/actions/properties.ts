@@ -260,3 +260,15 @@ export async function editProperty(raw: PropertyEditInput): Promise<ActionResult
   revalidatePath(`/properties/${current.slug}`)
   return { ok: true, data: { slug: current.slug } }
 }
+
+/** Owner renews an expired/expiring listing: +60 days, reactivates if expired. */
+export async function renewListing(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Not authenticated.' }
+  const { error } = await supabase.rpc('renew_listing', { p_id: id })
+  if (error) return { ok: false, error: error.message }
+  revalidatePath('/dashboard')
+  revalidatePath('/properties')
+  return { ok: true }
+}

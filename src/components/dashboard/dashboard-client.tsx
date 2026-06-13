@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { motion } from 'framer-motion'
 import {
-  BarChart3, Eye, Heart, Inbox, Pencil, Plus, Settings, TrendingUp, Trash2,
+  BarChart3, Eye, Heart, Inbox, MessageSquare, Pencil, Plus, Settings, TrendingUp, Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { deleteProperty, setListingStatus } from '@/lib/actions/properties'
+import { deleteProperty, setListingStatus, renewListing } from '@/lib/actions/properties'
 import { useToast } from '@/components/providers/toast-provider'
 import { EmailVerifyBanner } from '@/components/dashboard/email-verify-banner'
 import { updateProfile } from '@/lib/actions/profile'
@@ -50,7 +50,10 @@ export function DashboardClient({
             Welcome back{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}
           </h1>
         </div>
-        <Button asChild><Link href="/dashboard/listings/new"><Plus className="-ml-1" /> Add listing</Link></Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline"><Link href="/dashboard/messages"><MessageSquare className="-ml-1" /> Messages</Link></Button>
+          <Button asChild><Link href="/dashboard/listings/new"><Plus className="-ml-1" /> Add listing</Link></Button>
+        </div>
       </div>
 
       <EmailVerifyBanner />
@@ -87,6 +90,15 @@ function ListingsTab({ listings }: { listings: Property[] }) {
   const { toast } = useToast()
   const [pending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
+
+  function renew(id: string) {
+    setBusyId(id)
+    startTransition(async () => {
+      const res = await renewListing(id)
+      if (res.ok) { toast({ title: 'Listing renewed for 60 days', variant: 'success' }); router.refresh() }
+      else toast({ title: 'Could not renew', description: res.error, variant: 'error' })
+    })
+  }
 
   function markDone(id: string, status: 'sold' | 'rented') {
     setBusyId(id)
@@ -149,6 +161,15 @@ function ListingsTab({ listings }: { listings: Property[] }) {
                   onClick={() => markDone(p.id, p.listing_type === 'rent' ? 'rented' : 'sold')}
                 >
                   Mark {p.listing_type === 'rent' ? 'rented' : 'sold'}
+                </Button>
+              )}
+              {p.status === 'expired' && (
+                <Button
+                  variant="outline" size="sm"
+                  disabled={pending && busyId === p.id}
+                  onClick={() => renew(p.id)}
+                >
+                  Renew
                 </Button>
               )}
               <Button variant="ghost" size="icon" aria-label="Edit listing" asChild><Link href={`/dashboard/listings/${p.id}/edit`}><Pencil className="size-4" /></Link></Button>

@@ -147,10 +147,25 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['property_inquiries']['Insert']>
         Relationships: [{ foreignKeyName: 'property_inquiries_property_id_fkey'; columns: ['property_id']; isOneToOne: false; referencedRelation: 'properties'; referencedColumns: ['id'] }, { foreignKeyName: 'property_inquiries_sender_id_fkey'; columns: ['sender_id']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] }]
       }
+      conversations: {
+        Row: { id: string; property_id: string; buyer_id: string; seller_id: string; created_at: string; updated_at: string }
+        Insert: { id?: string; property_id: string; buyer_id: string; seller_id: string; created_at?: string; updated_at?: string }
+        Update: { updated_at?: string }
+        Relationships: []
+      }
+      messages: {
+        Row: { id: string; conversation_id: string; sender_id: string; body: string; read_at: string | null; created_at: string }
+        Insert: { id?: string; conversation_id: string; sender_id: string; body: string; read_at?: string | null; created_at?: string }
+        Update: { read_at?: string | null }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
       increment_view_count: { Args: { p_id: string }; Returns: undefined }
+      renew_listing: { Args: { p_id: string }; Returns: undefined }
+      get_or_create_conversation: { Args: { p_property_id: string }; Returns: string }
+      expire_old_listings: { Args: Record<string, never>; Returns: number }
       increment_contact_count: { Args: { p_id: string }; Returns: undefined }
       get_seller_stats: { Args: Record<string, never>; Returns: SellerStats[] }
       properties_within_radius: {
