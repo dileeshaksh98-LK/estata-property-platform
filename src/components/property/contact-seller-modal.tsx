@@ -18,8 +18,10 @@ export function ContactSellerModal({
   const openedAt = useRef<number>(0)
 
   const seller = property.profiles
-  const phone = seller?.phone?.trim() || null
-  const wa = whatsappLink(seller?.whatsapp || seller?.phone)
+  // Per-listing contact (set when posting on a seller's behalf) takes priority;
+  // otherwise fall back to the poster's profile number.
+  const phone = (property.contact_phone?.trim() || seller?.phone?.trim()) || null
+  const wa = whatsappLink(property.contact_whatsapp || property.contact_phone || seller?.whatsapp || seller?.phone)
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''

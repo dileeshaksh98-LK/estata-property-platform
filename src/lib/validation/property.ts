@@ -54,6 +54,7 @@ export const propertyEditInput = z.object({
   property_type: propertyTypeEnum,
   listing_type: listingTypeEnum,
   price: z.coerce.number().positive().max(1e12),
+  building_sqft: z.coerce.number().positive().max(1e7).optional(),
   negotiable: z.boolean().optional(),
   amenities: z.array(z.string().min(1).max(60)).max(30).optional(),
   district: z.string().min(1),

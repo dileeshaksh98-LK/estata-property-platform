@@ -58,6 +58,7 @@ export function EditListingClient({ property }: { property: Property }) {
     bathrooms: property.bathrooms != null ? String(property.bathrooms) : '',
     parking: property.parking != null ? String(property.parking) : '',
     land_size: property.land_size != null ? String(property.land_size) : '',
+    building_sqft: property.building_sqft != null ? String(property.building_sqft) : '',
     year_built: property.year_built != null ? String(property.year_built) : '',
     status: property.status as 'active' | 'sold' | 'rented' | 'draft',
     latitude: property.latitude,
@@ -133,7 +134,8 @@ export function EditListingClient({ property }: { property: Property }) {
         address: f.address,
         latitude: f.latitude,
         longitude: f.longitude,
-        land_size: f.land_size ? Number(f.land_size) : null,
+        land_size: f.property_type === 'apartment' ? undefined : (f.land_size ? Number(f.land_size) : undefined),
+        building_sqft: f.property_type === 'apartment' && f.building_sqft ? Number(f.building_sqft) : undefined,
         bedrooms: f.bedrooms ? Number(f.bedrooms) : null,
         bathrooms: f.bathrooms ? Number(f.bathrooms) : null,
         parking: f.parking ? Number(f.parking) : null,
@@ -251,7 +253,11 @@ export function EditListingClient({ property }: { property: Property }) {
             <Group label="Bathrooms"><Input type="number" value={f.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} /></Group>
           </>}
           <Group label="Parking"><Input type="number" value={f.parking} onChange={(e) => set('parking', e.target.value)} /></Group>
-          <Group label="Land (perch)"><Input type="number" value={f.land_size} onChange={(e) => set('land_size', e.target.value)} /></Group>
+          {f.property_type === 'apartment' ? (
+            <Group label="Floor area (sq ft)"><Input type="number" value={f.building_sqft} onChange={(e) => set('building_sqft', e.target.value)} /></Group>
+          ) : (
+            <Group label="Land (perch)"><Input type="number" value={f.land_size} onChange={(e) => set('land_size', e.target.value)} /></Group>
+          )}
         </div>
 
         {/* Contact */}

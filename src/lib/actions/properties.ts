@@ -26,11 +26,14 @@ export async function createProperty(raw: PropertyInput): Promise<ActionResult<{
   const { images, contact_phone, contact_whatsapp, ...fields } = input
 
   // Save contact details to the seller profile so Call/WhatsApp work on the listing.
+  // Save contact on the LISTING (above). Seed the profile only if it's empty,
+  // so an agent posting on a seller's behalf never overwrites their own number.
   if (contact_phone || contact_whatsapp) {
-    await supabase.from('profiles').update({
-      ...(contact_phone ? { phone: contact_phone } : {}),
-      ...(contact_whatsapp ? { whatsapp: contact_whatsapp } : {}),
-    }).eq('id', user.id)
+    const { data: prof } = await supabase.from('profiles').select('phone, whatsapp').eq('id', user.id).maybeSingle()
+    const patch: { phone?: string; whatsapp?: string } = {}
+    if (contact_phone && !prof?.phone) patch.phone = contact_phone
+    if (contact_whatsapp && !prof?.whatsapp) patch.whatsapp = contact_whatsapp
+    if (Object.keys(patch).length) await supabase.from('profiles').update(patch).eq('id', user.id)
   }
 
   const { data: property, error: insertError } = await supabase
@@ -46,6 +49,8 @@ export async function createProperty(raw: PropertyInput): Promise<ActionResult<{
       price: fields.price,
       price_per_unit: fields.price_per_unit ?? false,
       negotiable: fields.negotiable ?? false,
+      contact_phone: contact_phone || null,
+      contact_whatsapp: contact_whatsapp || null,
       amenities: fields.amenities ?? [],
       district: fields.district,
       city: fields.city || null,
@@ -180,11 +185,14 @@ export async function editProperty(raw: PropertyEditInput): Promise<ActionResult
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Not authenticated.' }
 
+  // Save contact on the LISTING (above). Seed the profile only if it's empty,
+  // so an agent posting on a seller's behalf never overwrites their own number.
   if (contact_phone || contact_whatsapp) {
-    await supabase.from('profiles').update({
-      ...(contact_phone ? { phone: contact_phone } : {}),
-      ...(contact_whatsapp ? { whatsapp: contact_whatsapp } : {}),
-    }).eq('id', user.id)
+    const { data: prof } = await supabase.from('profiles').select('phone, whatsapp').eq('id', user.id).maybeSingle()
+    const patch: { phone?: string; whatsapp?: string } = {}
+    if (contact_phone && !prof?.phone) patch.phone = contact_phone
+    if (contact_whatsapp && !prof?.whatsapp) patch.whatsapp = contact_whatsapp
+    if (Object.keys(patch).length) await supabase.from('profiles').update(patch).eq('id', user.id)
   }
 
   // Load current listing (ownership + current images for the diff).
@@ -205,6 +213,8 @@ export async function editProperty(raw: PropertyEditInput): Promise<ActionResult
       price: fields.price,
       negotiable: fields.negotiable ?? false,
       amenities: fields.amenities ?? [],
+      contact_phone: contact_phone || null,
+      contact_whatsapp: contact_whatsapp || null,
       district: fields.district,
       city: fields.city || null,
       address: fields.address || null,

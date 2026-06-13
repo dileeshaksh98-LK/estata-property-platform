@@ -63,6 +63,8 @@ export interface Database {
           land_size: number | null
           land_size_unit: LandSizeUnitDB | null
           building_sqft: number | null
+          contact_phone: string | null
+          contact_whatsapp: string | null
           bedrooms: number | null
           bathrooms: number | null
           parking: number | null
@@ -99,6 +101,8 @@ export interface Database {
           land_size?: number | null
           land_size_unit?: LandSizeUnitDB | null
           building_sqft?: number | null
+          contact_phone?: string | null
+          contact_whatsapp?: string | null
           bedrooms?: number | null
           bathrooms?: number | null
           parking?: number | null

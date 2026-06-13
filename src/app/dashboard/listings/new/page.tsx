@@ -47,6 +47,7 @@ interface FormState {
   bathrooms: string
   parking: string
   land_size: string
+  building_sqft: string
   amenities: string[]
   images: ImageItem[]
   latitude: number | null
@@ -58,7 +59,7 @@ interface FormState {
 const initial: FormState = {
   property_type: 'house', listing_type: 'sale', title: '', description: '',
   district: '', city: '', address: '', price: '', negotiable: false, bedrooms: '', bathrooms: '',
-  parking: '', land_size: '', amenities: [], images: [],
+  parking: '', land_size: '', building_sqft: '', amenities: [], images: [],
   latitude: null, longitude: null, contact_phone: '', contact_whatsapp: '',
 }
 
@@ -136,7 +137,8 @@ export default function NewListingPage() {
         bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
         parking: form.parking ? Number(form.parking) : null,
-        land_size: form.land_size ? Number(form.land_size) : null,
+        land_size: form.property_type === 'apartment' ? null : (form.land_size ? Number(form.land_size) : null),
+        building_sqft: form.property_type === 'apartment' ? (form.building_sqft ? Number(form.building_sqft) : null) : null,
         latitude: form.latitude,
         longitude: form.longitude,
         contact_phone: form.contact_phone,
@@ -290,7 +292,11 @@ function Details({ form, set }: StepProps) {
           <Group label="Bathrooms"><Input type="number" value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} placeholder="0" /></Group>
         </>}
         <Group label="Parking"><Input type="number" value={form.parking} onChange={(e) => set('parking', e.target.value)} placeholder="0" /></Group>
-        <Group label="Land (perch)"><Input type="number" value={form.land_size} onChange={(e) => set('land_size', e.target.value)} placeholder="0" /></Group>
+        {form.property_type === 'apartment' ? (
+          <Group label="Floor area (sq ft)"><Input type="number" value={form.building_sqft} onChange={(e) => set('building_sqft', e.target.value)} placeholder="0" /></Group>
+        ) : (
+          <Group label="Land (perch)"><Input type="number" value={form.land_size} onChange={(e) => set('land_size', e.target.value)} placeholder="0" /></Group>
+        )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Group label="Contact phone"><Input type="tel" value={form.contact_phone} onChange={(e) => set('contact_phone', e.target.value)} placeholder="07X XXX XXXX" /></Group>
@@ -367,7 +373,8 @@ function Review({ form, doneImages }: { form: FormState; doneImages: ImageItem[]
     status: 'draft', price: Number(form.price) || 0, price_per_unit: false, negotiable: form.negotiable, amenities: form.amenities, currency: 'LKR',
     address: form.address, city: form.city || 'Your city', district: form.district || 'District', province: null,
     latitude: null, longitude: null, land_size: Number(form.land_size) || null, land_size_unit: 'perch',
-    building_sqft: null, bedrooms: Number(form.bedrooms) || null, bathrooms: Number(form.bathrooms) || null,
+    contact_phone: form.contact_phone || null, contact_whatsapp: form.contact_whatsapp || null,
+    building_sqft: form.building_sqft ? Number(form.building_sqft) : null, bedrooms: Number(form.bedrooms) || null, bathrooms: Number(form.bathrooms) || null,
     parking: Number(form.parking) || null, year_built: null, is_featured: false, view_count: 0, contact_count: 0,
     created_at: new Date().toISOString(),
     property_images: doneImages.map((im, i) => ({ id: im.id, url: im.url!, is_primary: i === 0, sort_order: i })),
