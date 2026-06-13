@@ -42,7 +42,7 @@ export function PropertyActions({ property }: { property: Property }) {
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{property.profiles?.full_name ?? 'Private seller'}</p>
-            <p className="text-xs capitalize text-muted-foreground">{property.profiles?.verification_level ?? 'member'} seller</p>
+            <p className="text-xs capitalize text-muted-foreground">{!property.profiles?.verification_level || property.profiles.verification_level === 'none' ? 'Member' : `${property.profiles.verification_level} verified`} seller</p>
           </div>
         </div>
 

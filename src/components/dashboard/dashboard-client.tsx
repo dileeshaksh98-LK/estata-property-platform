@@ -214,7 +214,12 @@ function SettingsTab({ profile }: { profile: Profile | null }) {
         <span className="grid size-16 place-items-center rounded-full bg-primary/10 font-display text-2xl font-semibold text-primary">
           {(profile?.full_name ?? 'S').charAt(0)}
         </span>
-        <Badge variant="verified" className="capitalize">{profile?.verification_level ?? 'none'} seller</Badge>
+        <div className="space-y-1">
+          {profile?.full_name && <p className="font-display text-lg font-semibold leading-none">{profile.full_name}</p>}
+          <Badge variant={profile?.verification_level && profile.verification_level !== 'none' ? 'verified' : 'outline'} className="capitalize">
+            {!profile?.verification_level || profile.verification_level === 'none' ? 'Unverified seller' : `${profile.verification_level} verified`}
+          </Badge>
+        </div>
       </div>
       <Field label="Full name"><Input name="full_name" defaultValue={profile?.full_name ?? ''} required /></Field>
       <div className="grid gap-4 sm:grid-cols-2">
